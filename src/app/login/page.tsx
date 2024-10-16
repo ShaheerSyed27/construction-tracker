@@ -4,9 +4,8 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // For programmatic navigation
+import { useRouter } from "next/navigation";
 
-// Define a type for the form inputs
 interface LoginFormInputs {
   email: string;
   password: string;
@@ -14,8 +13,8 @@ interface LoginFormInputs {
 
 export default function LoginPage() {
   const { register, handleSubmit } = useForm<LoginFormInputs>();
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter(); // Use Next.js router for navigation
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     const { email, password } = data;
@@ -23,10 +22,13 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Login successful!");
 
-      // Redirect to user-specific dashboard (example: /dashboard?user=email)
       router.push(`/dashboard?user=${encodeURIComponent(email)}`);
-    } catch (err) {
-      setError("Invalid email or password. Please try again.");
+    } catch (error: unknown) { // Correctly typed catch block
+      if (error instanceof Error) {
+        setErrorMessage(error.message); // Use error message state
+      } else {
+        setErrorMessage("An unexpected error occurred.");
+      }
     }
   };
 
@@ -57,7 +59,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
           <button
             type="submit"
