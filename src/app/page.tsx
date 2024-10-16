@@ -48,7 +48,7 @@ export default function HomePage() {
         <div className="text-center mb-10">
           <h2 className="text-4xl font-semibold">Why Built Duplex Brothers Website?</h2>
           <p className="text-lg text-gray-600 mt-2">
-            Because I hate myself and didn't want to sleep.
+            Because I hate myself and didn&apos;t want to sleep.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
