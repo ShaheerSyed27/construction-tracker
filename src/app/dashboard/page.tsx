@@ -18,12 +18,13 @@ export default function DashboardPage() {
   const [user, setUser] = useState<string | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
 
+  // Ensure the page loads correctly by waiting for the user query param.
   useEffect(() => {
     const currentUser = searchParams?.get("user");
     if (currentUser) {
       setUser(currentUser);
     } else {
-      router.push("/login");
+      router.push("/login"); // Redirect to login if no user found
     }
   }, [searchParams, router]);
 
@@ -33,7 +34,6 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // Dummy issues data
     setIssues([
       { id: 1, description: "Crane malfunction", status: "Resolved", timestamp: "2 hours ago" },
       { id: 2, description: "Safety gear inspection", status: "Pending", timestamp: "Yesterday" },
