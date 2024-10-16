@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
@@ -20,7 +19,7 @@ export default function DashboardPage() {
   const [issues, setIssues] = useState<Issue[]>([]);
 
   useEffect(() => {
-    const currentUser = searchParams.get("user");
+    const currentUser = searchParams?.get("user");
     if (currentUser) {
       setUser(currentUser);
     } else {
