@@ -11,30 +11,26 @@ interface Issue {
   timestamp: string;
 }
 
-// Add this to enforce dynamic rendering
 export const dynamic = "force-dynamic";
 
-function DashboardContent() {
+function DashboardContent({ userRole }: { userRole: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [user, setUser] = useState<string | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [newIssue, setNewIssue] = useState<Issue>({
+    id: 0,
+    description: "",
+    status: "Pending",
+    timestamp: new Date().toLocaleString(),
+  });
 
-  useEffect(() => {
-    const currentUser = searchParams?.get("user");
-    if (currentUser) {
-      setUser(currentUser);
-    } else {
-      //router.push("/login");
-    }
-  }, [searchParams, router]);
-
+  // Logout functionality
   const handleLogout = async () => {
     await signOut(auth);
     router.push("/login");
   };
 
   useEffect(() => {
+    // Dummy initial issues data
     setIssues([
       { id: 1, description: "Crane malfunction", status: "Resolved", timestamp: "2 hours ago" },
       { id: 2, description: "Safety gear inspection", status: "Pending", timestamp: "Yesterday" },
@@ -42,8 +38,30 @@ function DashboardContent() {
     ]);
   }, []);
 
+  // Function to handle input changes for the new issue
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewIssue((prevIssue) => ({
+      ...prevIssue,
+      [name]: value,
+      timestamp: new Date().toLocaleString(), // Automatically set timestamp
+    }));
+  };
+
+  // Function to add a new issue to the dashboard
+  const addIssue = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIssues((prevIssues) => [
+      ...prevIssues,
+      { ...newIssue, id: prevIssues.length + 1 },
+    ]);
+    // Clear the form after submission
+    setNewIssue({ id: 0, description: "", status: "Pending", timestamp: "" });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      {/* Sidebar */}
       <aside className="w-64 bg-blue-800 text-white flex flex-col p-6">
         <h1 className="text-2xl font-bold mb-8">Project Dashboard</h1>
         <nav className="flex-1">
@@ -62,27 +80,46 @@ function DashboardContent() {
         </button>
       </aside>
 
+      {/* Main Content */}
       <main className="flex-1 p-8">
         <header className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-semibold">Welcome, {user}</h2>
+          <h2 className="text-3xl font-semibold">Welcome, {userRole}!</h2>
           <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
         </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded shadow">
-            <h3 className="text-xl font-bold">Total Projects</h3>
-            <p className="text-4xl mt-4">12</p>
-          </div>
-          <div className="bg-white p-6 rounded shadow">
-            <h3 className="text-xl font-bold">Active Issues</h3>
-            <p className="text-4xl mt-4">{issues.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded shadow">
-            <h3 className="text-xl font-bold">Resolved Today</h3>
-            <p className="text-4xl mt-4">5</p>
-          </div>
+        {/* Add New Issue Form */}
+        <section className="mb-8">
+          <h3 className="text-2xl font-semibold mb-4">Add New Issue</h3>
+          <form onSubmit={addIssue} className="space-y-4">
+            <input
+              type="text"
+              name="description"
+              value={newIssue.description}
+              onChange={handleInputChange}
+              placeholder="Issue Description"
+              className="w-full p-2 border rounded"
+              required
+            />
+            <select
+              name="status"
+              value={newIssue.status}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <button
+              type="submit"
+              className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
+            >
+              Add Issue
+            </button>
+          </form>
         </section>
 
+        {/* Issues Table */}
         <section>
           <h3 className="text-2xl font-semibold mb-4">Recent Issues</h3>
           <div className="overflow-x-auto">
@@ -103,9 +140,11 @@ function DashboardContent() {
                     <td className="px-6 py-4">
                       <span
                         className={`px-2 py-1 rounded ${
-                          issue.status === "Resolved" ? "bg-green-100 text-green-800" :
-                          issue.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-blue-100 text-blue-800"
+                          issue.status === "Resolved"
+                            ? "bg-green-100 text-green-800"
+                            : issue.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-blue-100 text-blue-800"
                         }`}
                       >
                         {issue.status}
@@ -124,9 +163,20 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const role = searchParams?.get("role") || "user"; // Default to "user" role
+    setUserRole(role);
+  }, [searchParams]);
+
+  if (!userRole) return <p>Loading...</p>;
+
   return (
     <Suspense fallback={<p>Loading dashboard...</p>}>
-      <DashboardContent />
+      <DashboardContent userRole={userRole} />
     </Suspense>
   );
 }
