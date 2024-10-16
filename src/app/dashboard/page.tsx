@@ -1,15 +1,18 @@
 /* eslint-disable */
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, ChangeEvent, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db, storage } from "../firebase"; // Import Firestore and Storage
+import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore"; 
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface Issue {
-  id: number;
+  id: string;
   description: string;
   status: string;
   timestamp: string;
+  imageUrl?: string;
 }
 
 export const dynamic = "force-dynamic";
@@ -19,19 +22,25 @@ function DashboardContent({ userRole }: { userRole: string }) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [showForm, setShowForm] = useState(false); // Control form visibility
   const [newIssue, setNewIssue] = useState<Issue>({
-    id: 0,
+    id: "",
     description: "",
     status: "Pending",
     timestamp: new Date().toLocaleString(),
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store selected image
 
+  // Fetch issues from Firestore
   useEffect(() => {
-    // Dummy initial issues data
-    setIssues([
-      { id: 1, description: "Crane malfunction", status: "Resolved", timestamp: "2 hours ago" },
-      { id: 2, description: "Safety gear inspection", status: "Pending", timestamp: "Yesterday" },
-      { id: 3, description: "Material delay", status: "In Progress", timestamp: "3 days ago" },
-    ]);
+    const fetchIssues = async () => {
+      const querySnapshot = await getDocs(collection(db, "issues"));
+      const issuesData: Issue[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Issue[];
+      setIssues(issuesData);
+    };
+
+    fetchIssues();
   }, []);
 
   const handleLogout = async () => {
@@ -39,7 +48,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
     router.push("/login");
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Handle input changes for the new issue
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewIssue((prevIssue) => ({
       ...prevIssue,
@@ -48,11 +58,36 @@ function DashboardContent({ userRole }: { userRole: string }) {
     }));
   };
 
-  const addIssue = (e: React.FormEvent) => {
+  // Handle image selection
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
+  // Add new issue to Firestore and upload image to Storage
+  const addIssue = async (e: FormEvent) => {
     e.preventDefault();
-    setIssues((prevIssues) => [...prevIssues, { ...newIssue, id: prevIssues.length + 1 }]);
-    setNewIssue({ id: 0, description: "", status: "Pending", timestamp: "" });
-    setShowForm(false); // Hide form after submission
+    let imageUrl = "";
+
+    if (selectedImage) {
+      const imageRef = ref(storage, `issues/${selectedImage.name}`);
+      await uploadBytes(imageRef, selectedImage);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
+    const newIssueData = {
+      ...newIssue,
+      timestamp: Timestamp.fromDate(new Date()),
+      imageUrl,
+    };
+
+    const docRef = await addDoc(collection(db, "issues"), newIssueData);
+
+    setIssues((prevIssues) => [...prevIssues, { ...newIssueData, id: docRef.id }]);
+    setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
+    setSelectedImage(null);
+    setShowForm(false);
   };
 
   return (
@@ -117,6 +152,11 @@ function DashboardContent({ userRole }: { userRole: string }) {
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
               </select>
+              <input
+                type="file"
+                onChange={handleImageChange}
+                className="w-full p-2 border rounded"
+              />
               <button
                 type="submit"
                 className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
@@ -134,6 +174,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Description</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Timestamp</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Image</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,6 +196,11 @@ function DashboardContent({ userRole }: { userRole: string }) {
                       </span>
                     </td>
                     <td className="px-6 py-4">{issue.timestamp}</td>
+                    <td className="px-6 py-4">
+                      {issue.imageUrl && (
+                        <img src={issue.imageUrl} alt="Issue" className="w-16 h-16 object-cover" />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -171,7 +217,7 @@ function DashboardLoader() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = searchParams?.get("role") || "user"; // Default to "user" role
+    const role = searchParams?.get("role") || "user";
     setUserRole(role);
   }, [searchParams]);
 
