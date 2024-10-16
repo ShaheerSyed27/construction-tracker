@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 // Import Firebase to initialize it globally
-import { auth } from "./firebase";  // Adjust the path if needed
+//import { auth } from "./firebase";  // Adjust the path if needed
 
 // Optional: Log to ensure Firebase is initialized
 console.log("Firebase initialized!");
