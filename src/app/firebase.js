@@ -1,3 +1,4 @@
+/* eslint-disable */
 // src/app/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
