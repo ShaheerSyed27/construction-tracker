@@ -1,15 +1,25 @@
-// src/app/LoginPage.tsx
+// src/app/login/page.tsx
 "use client";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword 
+} from "firebase/auth";
 import { useState } from "react";
 
+// Define a type for the form inputs
+interface LoginFormInputs {
+  email: string;
+  password: string;
+}
+
 export default function LoginPage() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit } = useForm<LoginFormInputs>();
   const [isNewUser, setIsNewUser] = useState(false);
 
-  const onSubmit = async (data: any) => {
+  // Use the SubmitHandler type for the form submission function
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     const { email, password } = data;
     try {
       if (isNewUser) {
@@ -19,8 +29,10 @@ export default function LoginPage() {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Login successful!");
       }
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message); // Properly typed error handling
+      }
     }
   };
 
@@ -29,13 +41,13 @@ export default function LoginPage() {
       <h1 className="text-2xl font-bold">{isNewUser ? "Sign Up" : "Login"}</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <input
-          {...register("email")}
+          {...register("email", { required: true })}
           type="email"
           placeholder="Email"
           className="border p-2 rounded"
         />
         <input
-          {...register("password")}
+          {...register("password", { required: true })}
           type="password"
           placeholder="Password"
           className="border p-2 rounded"
@@ -57,4 +69,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

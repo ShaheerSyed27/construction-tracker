@@ -1,11 +1,11 @@
-// src/app/DashboardPage.tsx
+// src/app/dashboard/page.tsx
 "use client";
-import { auth } from "../firebase";
+import { auth } from "../firebase"; // Import from your local firebase.js file
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth"; // Import Firebase methods
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null); // Use correct User type from firebase/auth
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -32,4 +32,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
