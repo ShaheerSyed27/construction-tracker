@@ -17,18 +17,13 @@ export const dynamic = "force-dynamic";
 function DashboardContent({ userRole }: { userRole: string }) {
   const router = useRouter();
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [showForm, setShowForm] = useState(false); // Control form visibility
   const [newIssue, setNewIssue] = useState<Issue>({
     id: 0,
     description: "",
     status: "Pending",
     timestamp: new Date().toLocaleString(),
   });
-
-  // Logout functionality
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/login");
-  };
 
   useEffect(() => {
     // Dummy initial issues data
@@ -39,25 +34,25 @@ function DashboardContent({ userRole }: { userRole: string }) {
     ]);
   }, []);
 
-  // Function to handle input changes for the new issue
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push("/login");
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewIssue((prevIssue) => ({
       ...prevIssue,
       [name]: value,
-      timestamp: new Date().toLocaleString(), // Automatically set timestamp
+      timestamp: new Date().toLocaleString(),
     }));
   };
 
-  // Function to add a new issue to the dashboard
   const addIssue = (e: React.FormEvent) => {
     e.preventDefault();
-    setIssues((prevIssues) => [
-      ...prevIssues,
-      { ...newIssue, id: prevIssues.length + 1 },
-    ]);
-    // Clear the form after submission
+    setIssues((prevIssues) => [...prevIssues, { ...newIssue, id: prevIssues.length + 1 }]);
     setNewIssue({ id: 0, description: "", status: "Pending", timestamp: "" });
+    setShowForm(false); // Hide form after submission
   };
 
   return (
@@ -88,41 +83,49 @@ function DashboardContent({ userRole }: { userRole: string }) {
           <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
         </header>
 
-        {/* Add New Issue Form */}
-        <section className="mb-8">
-          <h3 className="text-2xl font-semibold mb-4">Add New Issue</h3>
-          <form onSubmit={addIssue} className="space-y-4">
-            <input
-              type="text"
-              name="description"
-              value={newIssue.description}
-              onChange={handleInputChange}
-              placeholder="Issue Description"
-              className="w-full p-2 border rounded"
-              required
-            />
-            <select
-              name="status"
-              value={newIssue.status}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-            >
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-            </select>
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
-            >
-              Add Issue
-            </button>
-          </form>
-        </section>
-
-        {/* Issues Table */}
+        {/* Issues Table with Add Button */}
         <section>
-          <h3 className="text-2xl font-semibold mb-4">Recent Issues</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-semibold">Recent Issues</h3>
+            <button
+              className="text-2xl bg-green-600 text-white p-2 rounded-full hover:bg-green-700"
+              onClick={() => setShowForm(!showForm)}
+            >
+              +
+            </button>
+          </div>
+
+          {/* Form to Add New Issue (Hidden by Default) */}
+          {showForm && (
+            <form onSubmit={addIssue} className="space-y-4 mb-8">
+              <input
+                type="text"
+                name="description"
+                value={newIssue.description}
+                onChange={handleInputChange}
+                placeholder="Issue Description"
+                className="w-full p-2 border rounded"
+                required
+              />
+              <select
+                name="status"
+                value={newIssue.status}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+              <button
+                type="submit"
+                className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
+              >
+                Add Issue
+              </button>
+            </form>
+          )}
+
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded">
               <thead>
