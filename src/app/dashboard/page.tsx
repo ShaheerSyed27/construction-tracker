@@ -1,95 +1,143 @@
 /* eslint-disable */
-"use client";
-import { useState, useEffect, Suspense, ChangeEvent, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { auth, db, storage } from "../firebase"; // Import Firestore and Storage
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore"; 
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+"use client"; // Ensures this component is client-side rendered in Next.js
 
+// Import necessary React hooks and Firebase modules
+import { useState, useEffect, Suspense, ChangeEvent, FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation"; // Next.js router hooks for navigation
+import { signOut } from "firebase/auth"; // Firebase authentication module
+import { auth, db, storage } from "../firebase"; // Firebase configuration (Firestore and Storage)
+import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore"; // Firestore methods
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage methods
+
+// Define the structure of the Issue object
 interface Issue {
   id: string;
   description: string;
   status: string;
-  timestamp: string;
-  imageUrl?: string;
+  timestamp: string; // Ensures timestamp is stored as string in state
+  imageUrl?: string; // Optional image URL field
 }
 
+// Force dynamic rendering (prevents static page generation in Next.js)
 export const dynamic = "force-dynamic";
 
+/* ===================
+   Dashboard Content Component
+   =================== */
 function DashboardContent({ userRole }: { userRole: string }) {
-  const router = useRouter();
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [showForm, setShowForm] = useState(false); // Control form visibility
+  const router = useRouter(); // Initialize router for navigation
+  const [issues, setIssues] = useState<Issue[]>([]); // State for storing issues from Firestore
+  const [showForm, setShowForm] = useState(false); // State to control visibility of issue input form
   const [newIssue, setNewIssue] = useState<Issue>({
     id: "",
     description: "",
-    status: "Pending",
-    timestamp: new Date().toLocaleString(),
+    status: "Pending", // Default status of a new issue
+    timestamp: new Date().toLocaleString(), // Default timestamp as string
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store selected image
+  const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store the selected image file
 
-  // Fetch issues from Firestore
+  /* ===================
+     Fetch Issues from Firestore (useEffect)
+     =================== */
   useEffect(() => {
     const fetchIssues = async () => {
-      const querySnapshot = await getDocs(collection(db, "issues"));
-      const issuesData: Issue[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Issue[];
-      setIssues(issuesData);
+      try {
+        const querySnapshot = await getDocs(collection(db, "issues")); // Fetch issues from Firestore
+        const issuesData: Issue[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data(); // Get the document data
+
+          // Return the issue object with timestamp converted to a string
+          return {
+            id: doc.id, // Document ID
+            description: data.description,
+            status: data.status,
+            imageUrl: data.imageUrl || "", // Optional image URL
+            timestamp: (data.timestamp as Timestamp).toDate().toLocaleString(), // Convert Timestamp to string
+          };
+        });
+
+        setIssues(issuesData); // Update state with fetched issues
+      } catch (error) {
+        console.error("Error fetching issues: ", error); // Error handling
+      }
     };
 
-    fetchIssues();
-  }, []);
+    fetchIssues(); // Call fetch function on component mount
+  }, []); // Run once when component mounts
 
+  /* ===================
+     Handle Logout Function
+     =================== */
   const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/login");
+    await signOut(auth); // Sign out from Firebase authentication
+    router.push("/login"); // Redirect the user to the login page
   };
 
-  // Handle input changes for the new issue
+  /* ===================
+     Handle Input Changes (Form Input)
+     =================== */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target; // Extract input name and value
     setNewIssue((prevIssue) => ({
-      ...prevIssue,
-      [name]: value,
-      timestamp: new Date().toLocaleString(),
+      ...prevIssue, // Preserve existing issue data
+      [name]: value, // Update the changed field
+      timestamp: new Date().toLocaleString(), // Automatically update timestamp as string
     }));
   };
 
-  // Handle image selection
+  /* ===================
+     Handle Image Selection (File Input)
+     =================== */
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+      setSelectedImage(e.target.files[0]); // Store the selected image file in state
     }
   };
 
-  // Add new issue to Firestore and upload image to Storage
+  /* ===================
+     Add New Issue (Firestore + Storage)
+     =================== */
   const addIssue = async (e: FormEvent) => {
-    e.preventDefault();
-    let imageUrl = "";
+    e.preventDefault(); // Prevent default form submission behavior
 
+    let imageUrl = ""; // Initialize image URL variable
+
+    // Upload image to Firebase Storage if one is selected
     if (selectedImage) {
-      const imageRef = ref(storage, `issues/${selectedImage.name}`);
-      await uploadBytes(imageRef, selectedImage);
-      imageUrl = await getDownloadURL(imageRef);
+      const imageRef = ref(storage, `issues/${selectedImage.name}`); // Create storage reference
+      await uploadBytes(imageRef, selectedImage); // Upload the image
+      imageUrl = await getDownloadURL(imageRef); // Retrieve the image URL
     }
 
+    // Prepare new issue data with timestamp as Firestore Timestamp
     const newIssueData = {
       ...newIssue,
-      timestamp: Timestamp.fromDate(new Date()),
-      imageUrl,
+      timestamp: Timestamp.fromDate(new Date()), // Store timestamp in Firestore format
+      imageUrl, // Include the uploaded image URL
     };
 
+    // Add the new issue to Firestore
     const docRef = await addDoc(collection(db, "issues"), newIssueData);
 
-    setIssues((prevIssues) => [...prevIssues, { ...newIssueData, id: docRef.id }]);
+    // Update the state with the newly added issue (convert timestamp to string)
+    setIssues((prevIssues) => [
+      ...prevIssues,
+      {
+        ...newIssueData,
+        id: docRef.id,
+        timestamp: new Date().toLocaleString(), // Ensure timestamp is a string
+      },
+    ]);
+
+    // Clear the form after submission
     setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
-    setSelectedImage(null);
-    setShowForm(false);
+    setSelectedImage(null); // Clear the selected image
+    setShowForm(false); // Hide the form after submission
   };
 
+  /* ===================
+     Component JSX Rendering
+     =================== */
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
@@ -130,7 +178,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
             </button>
           </div>
 
-          {/* Form to Add New Issue (Hidden by Default) */}
+          {/* Form to Add New Issue */}
           {showForm && (
             <form onSubmit={addIssue} className="space-y-4 mb-8">
               <input
@@ -152,54 +200,34 @@ function DashboardContent({ userRole }: { userRole: string }) {
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
               </select>
-              <input
-                type="file"
-                onChange={handleImageChange}
-                className="w-full p-2 border rounded"
-              />
-              <button
-                type="submit"
-                className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700"
-              >
+              <input type="file" onChange={handleImageChange} className="w-full p-2 border rounded" />
+              <button type="submit" className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
                 Add Issue
               </button>
             </form>
           )}
 
+          {/* Issues List */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">ID</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Description</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Timestamp</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Image</th>
+                  <th>ID</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Timestamp</th>
+                  <th>Image</th>
                 </tr>
               </thead>
               <tbody>
                 {issues.map((issue) => (
-                  <tr key={issue.id} className="border-t">
-                    <td className="px-6 py-4">{issue.id}</td>
-                    <td className="px-6 py-4">{issue.description}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded ${
-                          issue.status === "Resolved"
-                            ? "bg-green-100 text-green-800"
-                            : issue.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {issue.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{issue.timestamp}</td>
-                    <td className="px-6 py-4">
-                      {issue.imageUrl && (
-                        <img src={issue.imageUrl} alt="Issue" className="w-16 h-16 object-cover" />
-                      )}
+                  <tr key={issue.id}>
+                    <td>{issue.id}</td>
+                    <td>{issue.description}</td>
+                    <td>{issue.status}</td>
+                    <td>{issue.timestamp}</td>
+                    <td>
+                      {issue.imageUrl && <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />}
                     </td>
                   </tr>
                 ))}
@@ -212,12 +240,15 @@ function DashboardContent({ userRole }: { userRole: string }) {
   );
 }
 
+/* ===================
+   Dashboard Loader
+   =================== */
 function DashboardLoader() {
   const searchParams = useSearchParams();
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = searchParams?.get("role") || "user";
+    const role = searchParams?.get("role") || "user"; // Default to "user"
     setUserRole(role);
   }, [searchParams]);
 
@@ -226,6 +257,9 @@ function DashboardLoader() {
   return <DashboardContent userRole={userRole} />;
 }
 
+/* ===================
+   Dashboard Page (Exported Component)
+   =================== */
 export default function DashboardPage() {
   return (
     <Suspense fallback={<p>Loading dashboard...</p>}>
