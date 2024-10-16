@@ -52,19 +52,19 @@ export default function HomePage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg">
-            <h3 className="text-2xl font-semibold mb-4">Real-Time Tracking</h3>
+          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
+            <h3 className="text-2xl font-semibold mb-4 text-red-800">Real-Time Tracking</h3>
             <p className="text-gray-700">
               Monitor every phase of our project, from foundation to completion.
             </p>
           </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg">
-            <h3 className="text-2xl font-semibold mb-4">Collaborative Tools</h3>
+          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
+            <h3 className="text-2xl font-semibold mb-4 text-blue-800">Collaborative Tools</h3>
             <p className="text-gray-700">
               Keep everyone on the same page with seamless updates and endorsements.
             </p>
           </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-green-50 hover:bg-green-100 transition duration-300 ease-in-out transform hover:scale-110">
+          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
             <h3 className="text-2xl font-semibold mb-4 text-green-800">Budget Management</h3>
             <p className="text-gray-700">
             Log expenses and upload receipts with ease.
