@@ -64,8 +64,8 @@ export default function HomePage() {
               Keep everyone on the same page with seamless updates and endorsements.
             </p>
           </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-blue-50 hover:bg-blue-100 transition duration-300 ease-in-out transform hover:scale-105">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-800">Budget Management</h3>
+          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-green-50 hover:bg-green-100 transition duration-300 ease-in-out transform hover:scale-110">
+            <h3 className="text-2xl font-semibold mb-4 text-green-800">Budget Management</h3>
             <p className="text-gray-700">
             Log expenses and upload receipts with ease.
             </p>
