@@ -6,8 +6,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Particles from "react-tsparticles";
-import { Engine, ISourceOptions } from "tsparticles-engine"; // Adjusted import
-import { loadFull } from "tsparticles";
+import type { ISourceOptions, Engine } from "tsparticles-engine"; // Adjusted import
+import { loadFull } from "tsparticles-engine";
 
 interface LoginFormInputs {
   email: string;
