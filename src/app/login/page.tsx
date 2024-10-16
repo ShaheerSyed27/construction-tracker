@@ -33,7 +33,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-blue-300 flex items-center justify-center px-6">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
           Login to Your Account
