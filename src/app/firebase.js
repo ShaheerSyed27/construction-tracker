@@ -1,7 +1,6 @@
-/* eslint-disable */
 // src/app/firebase.js
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+//import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth"; // Use getAuth instead of auth
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -18,8 +17,7 @@ const firebaseConfig = {
   };
 
 // Initialize Firebase only if it hasn't been initialized already
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Export the Firebase services
 export const auth = getAuth(app);  // Correct export of auth
