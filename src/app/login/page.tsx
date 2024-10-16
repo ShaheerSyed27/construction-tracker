@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   // Function to initialize particles background
   const particlesInit = async (engine: unknown): Promise<void> => {
-    console.log(engine); // Optional: Log engine to verify initialization
+    console.log("Particles engine initialized:", engine); // Optional: Log engine to verify initialization
     await loadFull(engine as any); // Load tsparticles engine to enable particle effects
   };
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen bg-gray-900 flex items-center justify-center px-6">
       {/* Particles Background */}
       <Particles
-        className="absolute inset-0" // Full-screen background
+        className="absolute inset-0 -z-10" // Full-screen background
         init={particlesInit} // Initialize particles engine
         options={particlesOptions} // Pass configuration options for particles
       />
