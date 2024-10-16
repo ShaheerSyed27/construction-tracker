@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signOut } from "firebase/auth";
@@ -12,19 +11,21 @@ interface Issue {
   timestamp: string;
 }
 
+// Add this to enforce dynamic rendering
+export const dynamic = "force-dynamic";
+
 export default function DashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<string | null>(null);
   const [issues, setIssues] = useState<Issue[]>([]);
 
-  // Ensure the page loads correctly by waiting for the user query param.
   useEffect(() => {
     const currentUser = searchParams?.get("user");
     if (currentUser) {
       setUser(currentUser);
     } else {
-      router.push("/login"); // Redirect to login if no user found
+      router.push("/login");
     }
   }, [searchParams, router]);
 
@@ -43,7 +44,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
       <aside className="w-64 bg-blue-800 text-white flex flex-col p-6">
         <h1 className="text-2xl font-bold mb-8">Project Dashboard</h1>
         <nav className="flex-1">
@@ -62,7 +62,6 @@ export default function DashboardPage() {
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-8">
         <Suspense fallback={<p>Loading dashboard...</p>}>
           <header className="flex items-center justify-between mb-8">
@@ -70,7 +69,6 @@ export default function DashboardPage() {
             <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
           </header>
 
-          {/* Stats Section */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded shadow">
               <h3 className="text-xl font-bold">Total Projects</h3>
@@ -86,7 +84,6 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Issues Table */}
           <section>
             <h3 className="text-2xl font-semibold mb-4">Recent Issues</h3>
             <div className="overflow-x-auto">
