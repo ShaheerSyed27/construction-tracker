@@ -6,8 +6,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Particles from "react-tsparticles";
-import { Engine } from "tsparticles-engine"; // Ensure correct import
-import { loadFull } from "tsparticles"; // Load the tsparticles engine
+import { Engine, ISourceOptions } from "tsparticles-engine"; // Adjusted import
+import { loadFull } from "tsparticles";
 
 interface LoginFormInputs {
   email: string;
@@ -34,13 +34,13 @@ export default function LoginPage() {
   const particlesInit = async (engine: Engine): Promise<void> => {
     console.log("Particles engine initialized:", engine);
     try {
-      await loadFull(engine); // Ensure full loading of engine
+      await loadFull(engine); // Ensure proper loading of the engine
     } catch (error) {
       console.error("Error loading particles engine:", error);
     }
   };
 
-  const particlesOptions = {
+  const particlesOptions: ISourceOptions = {
     background: {
       color: {
         value: "#000",
@@ -70,7 +70,7 @@ export default function LoginPage() {
         id="tsparticles"
         init={particlesInit}
         className="absolute inset-0 -z-10"
-        options={particlesOptions as any} // Cast options to 'any' if needed
+        options={particlesOptions}
       />
 
       <div className="relative z-10 w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
@@ -96,9 +96,7 @@ export default function LoginPage() {
               className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          {errorMessage && (
-            <p className="text-red-500 text-sm">{errorMessage}</p>
-          )}
+          {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
