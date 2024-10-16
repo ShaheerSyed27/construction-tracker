@@ -1,7 +1,7 @@
 // src/app/LoginPage.tsx
 "use client";
 import { useForm } from "react-hook-form";
-import { auth } from "../../firebase";
+import { auth } from "./firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 

@@ -1,6 +1,6 @@
 // src/app/DashboardPage.tsx
 "use client";
-import { auth } from "../../firebase";
+import { auth } from "./firebase";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
