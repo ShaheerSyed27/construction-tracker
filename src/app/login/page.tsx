@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Particles from "react-tsparticles";
 import type { ISourceOptions, Engine } from "tsparticles-engine"; // Adjusted import
-import { loadFull } from "tsparticles-engine";
+import { loadFull } from "tsparticles";
 
 interface LoginFormInputs {
   email: string;
@@ -31,14 +31,15 @@ export default function LoginPage() {
     }
   };
 
-  const particlesInit = async (engine: Engine): Promise<void> => {
-    console.log("Particles engine initialized:", engine);
-    try {
-      await loadFull(engine); // Ensure proper loading of the engine
-    } catch (error) {
-      console.error("Error loading particles engine:", error);
-    }
-  };
+const particlesInit = async (engine: any): Promise<void> => {
+  console.log("Particles engine initialized:", engine);
+  try {
+    await loadFull(engine);
+  } catch (error) {
+    console.error("Error loading particles engine:", error);
+  }
+};
+
 
   const particlesOptions: ISourceOptions = {
     background: {
