@@ -2,8 +2,9 @@
 "use client";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // For programmatic navigation
 
 // Define a type for the form inputs
 interface LoginFormInputs {
@@ -13,22 +14,19 @@ interface LoginFormInputs {
 
 export default function LoginPage() {
   const { register, handleSubmit } = useForm<LoginFormInputs>();
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter(); // Use Next.js router for navigation
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     const { email, password } = data;
     try {
-      if (isNewUser) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("User registered successfully!");
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful!");
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Login successful!");
+
+      // Redirect to user-specific dashboard (example: /dashboard?user=email)
+      router.push(`/dashboard?user=${encodeURIComponent(email)}`);
+    } catch (err) {
+      setError("Invalid email or password. Please try again.");
     }
   };
 
@@ -36,7 +34,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center px-6">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
-          {isNewUser ? "Create an Account" : "Welcome Back"}
+          Login to Your Account
         </h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
@@ -59,28 +57,15 @@ export default function LoginPage() {
             />
           </div>
 
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
           >
-            {isNewUser ? "Sign Up" : "Login"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsNewUser(!isNewUser)}
-            className="w-full text-blue-600 py-2 mt-4 hover:underline"
-          >
-            {isNewUser ? "Already have an account? Login" : "Create an account"}
+            Login
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            By continuing, you agree to our <a href="#" className="text-blue-600 hover:underline">Terms</a> and{" "}
-            <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
-          </p>
-        </div>
       </div>
     </div>
   );
