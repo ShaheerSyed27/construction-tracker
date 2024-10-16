@@ -25,3 +25,15 @@ body {
     text-wrap: balance;
   }
 }
+
+input, select, textarea {
+  color: #1a1a1a; /* Darker text color */
+  background-color: #fff; /* White background for inputs */
+  border: 1px solid #ccc; /* Subtle border for contrast */
+  padding: 8px;
+  font-size: 16px; /* Ensure text is readable */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #666; /* Darker placeholder text */
+}
