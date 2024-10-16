@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Particles from "react-tsparticles";
-import type { ISourceOptions, Engine } from "tsparticles-engine"; // Use ISourceOptions and Engine type
+import type { ISourceOptions } from "tsparticles-engine"; // Use ISourceOptions and Engine type
 import { loadFull } from "tsparticles"; // Ensure we use loadFull correctly
 
 interface LoginFormInputs {
@@ -30,9 +30,9 @@ export default function LoginPage() {
     }
   };
 
-  const particlesInit = async (engine: any): Promise<any> => {
+  const particlesInit = async (engine: unknown): Promise<void> => {
     console.log(engine); // Optional: Verify engine initialization
-    await loadFull(engine); // Load tsparticles engine
+    await loadFull(engine as any); // Load tsparticles engine
   };
 
   const particlesOptions: ISourceOptions = {
