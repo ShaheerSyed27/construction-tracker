@@ -163,9 +163,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
   );
 }
 
-export default function DashboardPage() {
+function DashboardLoader() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -175,9 +174,13 @@ export default function DashboardPage() {
 
   if (!userRole) return <p>Loading...</p>;
 
+  return <DashboardContent userRole={userRole} />;
+}
+
+export default function DashboardPage() {
   return (
     <Suspense fallback={<p>Loading dashboard...</p>}>
-      <DashboardContent userRole={userRole} />
+      <DashboardLoader />
     </Suspense>
   );
 }
