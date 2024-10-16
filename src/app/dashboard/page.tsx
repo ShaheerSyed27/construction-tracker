@@ -14,7 +14,7 @@ interface Issue {
 // Add this to enforce dynamic rendering
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<string | null>(null);
@@ -63,64 +63,70 @@ export default function DashboardPage() {
       </aside>
 
       <main className="flex-1 p-8">
-        <Suspense fallback={<p>Loading dashboard...</p>}>
-          <header className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-semibold">Welcome, {user}</h2>
-            <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
-          </header>
+        <header className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-semibold">Welcome, {user}</h2>
+          <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
+        </header>
 
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded shadow">
-              <h3 className="text-xl font-bold">Total Projects</h3>
-              <p className="text-4xl mt-4">12</p>
-            </div>
-            <div className="bg-white p-6 rounded shadow">
-              <h3 className="text-xl font-bold">Active Issues</h3>
-              <p className="text-4xl mt-4">{issues.length}</p>
-            </div>
-            <div className="bg-white p-6 rounded shadow">
-              <h3 className="text-xl font-bold">Resolved Today</h3>
-              <p className="text-4xl mt-4">5</p>
-            </div>
-          </section>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-6 rounded shadow">
+            <h3 className="text-xl font-bold">Total Projects</h3>
+            <p className="text-4xl mt-4">12</p>
+          </div>
+          <div className="bg-white p-6 rounded shadow">
+            <h3 className="text-xl font-bold">Active Issues</h3>
+            <p className="text-4xl mt-4">{issues.length}</p>
+          </div>
+          <div className="bg-white p-6 rounded shadow">
+            <h3 className="text-xl font-bold">Resolved Today</h3>
+            <p className="text-4xl mt-4">5</p>
+          </div>
+        </section>
 
-          <section>
-            <h3 className="text-2xl font-semibold mb-4">Recent Issues</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white shadow rounded">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">ID</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Description</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Timestamp</th>
+        <section>
+          <h3 className="text-2xl font-semibold mb-4">Recent Issues</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow rounded">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">ID</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Description</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-600">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {issues.map((issue) => (
+                  <tr key={issue.id} className="border-t">
+                    <td className="px-6 py-4">{issue.id}</td>
+                    <td className="px-6 py-4">{issue.description}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          issue.status === "Resolved" ? "bg-green-100 text-green-800" :
+                          issue.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
+                          "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {issue.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">{issue.timestamp}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {issues.map((issue) => (
-                    <tr key={issue.id} className="border-t">
-                      <td className="px-6 py-4">{issue.id}</td>
-                      <td className="px-6 py-4">{issue.description}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 rounded ${
-                            issue.status === "Resolved" ? "bg-green-100 text-green-800" :
-                            issue.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
-                            "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {issue.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">{issue.timestamp}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </Suspense>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<p>Loading dashboard...</p>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
