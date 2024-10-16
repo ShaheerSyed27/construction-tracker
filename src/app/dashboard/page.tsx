@@ -267,3 +267,16 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
+
+/* ===================
+   Firebase Storage Rules (updated)
+   =================== */
+/*
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /issues/{fileName} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+*/
