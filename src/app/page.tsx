@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white text-gray-900">
       {/* Navigation Bar */}
       <nav className="flex justify-between items-center px-6 py-4">
-        <div className="text-2xl font-semibold tracking-wide">Duplex Brothers v2.0</div>
+        <div className="text-2xl font-semibold tracking-wide">Duplex Brothers v2.4</div>
         <div className="flex gap-6">
           <Link href="/login" className="hover:underline">
             Login
@@ -23,10 +23,10 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="text-center z-10">
           <h1 className="text-5xl font-extrabold text-white tracking-wider mb-4">
-            Build Your Dream Project
+            Building Our First Project
           </h1>
           <p className="text-lg text-gray-200 max-w-md mx-auto mb-6">
-            Track every phase of your construction journey with elegance and precision.
+            Track every phase of our construction journey here with precision and style.
           </p>
           <div className="flex justify-center gap-4">
             <Link href="/login">
@@ -46,16 +46,16 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="py-16 px-8">
         <div className="text-center mb-10">
-          <h2 className="text-4xl font-semibold">Why Choose Duplex Brothers?</h2>
+          <h2 className="text-4xl font-semibold">Why Built Duplex Brothers Website?</h2>
           <p className="text-lg text-gray-600 mt-2">
-            Our tool simplifies construction tracking and collaboration.
+            Because I hate myself and didn't want to sleep.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="p-6 border rounded-lg shadow-md hover:shadow-lg">
             <h3 className="text-2xl font-semibold mb-4">Real-Time Tracking</h3>
             <p className="text-gray-700">
-              Monitor every phase of your project, from foundation to completion.
+              Monitor every phase of our project, from foundation to completion.
             </p>
           </div>
           <div className="p-6 border rounded-lg shadow-md hover:shadow-lg">
@@ -64,12 +64,13 @@ export default function HomePage() {
               Keep everyone on the same page with seamless updates and endorsements.
             </p>
           </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg">
-            <h3 className="text-2xl font-semibold mb-4">Budget Management</h3>
+          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-blue-50 hover:bg-blue-100 transition duration-300 ease-in-out transform hover:scale-105">
+            <h3 className="text-2xl font-semibold mb-4 text-blue-800">Budget Management</h3>
             <p className="text-gray-700">
-              Log expenses and upload receipts with ease.
+            Log expenses and upload receipts with ease.
             </p>
           </div>
+
         </div>
       </section>
 
