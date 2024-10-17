@@ -1,21 +1,27 @@
+// Install Ant Design if you haven't already:
+// npm install antd
+
 "use client"; // Ensures this component is client-side rendered in Next.js
 
-// Import necessary React hooks and Firebase modules
 import { useState, useEffect, Suspense, ChangeEvent, FormEvent } from "react";
-import { useRouter, useSearchParams } from "next/navigation"; // Next.js router hooks for navigation
-import { signOut, onAuthStateChanged } from "firebase/auth"; // Firebase authentication module
-import { auth, db, storage } from "../firebase"; // Firebase configuration (Firestore and Storage)
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore"; // Firestore methods
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage methods
+import { useRouter, useSearchParams } from "next/navigation";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth, db, storage } from "../firebase";
+import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Table, Button, Input, Select, Upload, message } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import type { ColumnsType } from "antd/lib/table";
+import type { UploadFile } from "antd/lib/upload/interface";
 
 // Define the structure of the Issue object
 interface Issue {
-  id: string;
+  key: string; // Ant Design's Table expects a 'key' prop
   description: string;
   status: string;
-  timestamp: Date; // Use Date object for timestamps
-  imageUrl?: string; // Optional image URL field
-  loggerName: string; // Logger name entry
+  timestamp: Date;
+  imageUrl?: string;
+  loggerName: string;
 }
 
 // Define the structure of the new issue (without id and timestamp)
@@ -25,22 +31,21 @@ interface NewIssue {
   loggerName: string;
 }
 
-// Force dynamic rendering (prevents static page generation in Next.js)
 export const dynamic = "force-dynamic";
 
 /* ===================
    Dashboard Content Component
    =================== */
 function DashboardContent({ userRole }: { userRole: string }) {
-  const router = useRouter(); // Initialize router for navigation
-  const [issues, setIssues] = useState<Issue[]>([]); // State for storing issues from Firestore
+  const router = useRouter();
+  const [issues, setIssues] = useState<Issue[]>([]);
   const [newIssue, setNewIssue] = useState<NewIssue>({
     description: "",
-    status: "Pending", // Default status of a new issue
-    loggerName: "", // Default as an empty string
+    status: "Pending",
+    loggerName: "",
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store the selected image file
-  const [isLoading, setIsLoading] = useState(false); // Loading state for adding issue
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   /* ===================
      Fetch Issues from Firestore (useEffect)
@@ -51,16 +56,16 @@ function DashboardContent({ userRole }: { userRole: string }) {
         if (!auth.currentUser) {
           throw new Error("User is not authenticated");
         }
-        const querySnapshot = await getDocs(collection(db, "issues")); // Fetch issues from Firestore
+        const querySnapshot = await getDocs(collection(db, "issues"));
         const issuesData: Issue[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
 
           return {
-            id: doc.id,
+            key: doc.id,
             description: data.description,
             status: data.status,
             imageUrl: data.imageUrl || "",
-            timestamp: (data.timestamp as Timestamp).toDate(), // Convert Timestamp to Date
+            timestamp: (data.timestamp as Timestamp).toDate(),
             loggerName: data.loggerName,
           };
         });
@@ -68,7 +73,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
         setIssues(issuesData);
       } catch (error) {
         if (error instanceof Error) {
-          console.error("Error fetching issues: ", error); // Error handling
+          console.error("Error fetching issues: ", error);
           if (error.message === "User is not authenticated") {
             alert("You need to be logged in to view issues.");
             router.push("/login");
@@ -79,88 +84,93 @@ function DashboardContent({ userRole }: { userRole: string }) {
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchIssues(); // Call fetch function if user is authenticated
+        fetchIssues();
       } else {
-        router.push("/login"); // Redirect if user is not authenticated
+        router.push("/login");
       }
     });
 
-    return () => unsubscribe(); // Clean up on unmount
-  }, [router]); // Run once when component mounts
+    return () => unsubscribe();
+  }, [router]);
 
   /* ===================
      Handle Logout Function
      =================== */
   const handleLogout = async () => {
-    await signOut(auth); // Sign out from Firebase authentication
-    router.push("/login"); // Redirect the user to the login page
+    await signOut(auth);
+    router.push("/login");
   };
 
   /* ===================
      Handle Input Changes (Form Input)
      =================== */
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target; // Extract input name and value
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setNewIssue((prevIssue) => ({
-      ...prevIssue, // Preserve existing issue data
-      [name]: value, // Update the changed field
+      ...prevIssue,
+      [name]: value,
     }));
   };
 
   /* ===================
-     Handle Image Selection (File Input)
+     Handle Select Change
      =================== */
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]); // Store the selected image file in state
+     const handleSelectChange = (name: keyof NewIssue) => (value: string) => {
+      setNewIssue((prevIssue) => ({
+        ...prevIssue,
+        [name]: value,
+      }));
+    };
+
+  /* ===================
+     Handle Image Upload (Ant Design Upload)
+     =================== */
+  const handleImageChange = (info: any) => {
+    if (info.file.status === "done") {
+      setSelectedImage(info.file.originFileObj);
     }
   };
 
   /* ===================
      Add New Issue (Firestore + Storage)
      =================== */
-  const addIssue = async (e: FormEvent) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    setIsLoading(true); // Start loading indicator
+  const addIssue = async () => {
+    setIsLoading(true);
 
     try {
       if (!auth.currentUser) {
         throw new Error("User is not authenticated");
       }
 
-      let imageUrl = ""; // Initialize image URL variable
+      let imageUrl = "";
 
-      // Upload image to Firebase Storage if one is selected
       if (selectedImage) {
-        const uniqueImageName = `${Date.now()}_${selectedImage.name}`; // Ensure unique image name
-        const imageRef = ref(storage, `issues/${uniqueImageName}`); // Create storage reference
-        await uploadBytes(imageRef, selectedImage); // Upload the image
-        imageUrl = await getDownloadURL(imageRef); // Retrieve the image URL
+        const uniqueImageName = `${Date.now()}_${selectedImage.name}`;
+        const imageRef = ref(storage, `issues/${uniqueImageName}`);
+        await uploadBytes(imageRef, selectedImage);
+        imageUrl = await getDownloadURL(imageRef);
       }
 
-      // Prepare new issue data with timestamp as Firestore Timestamp
       const newIssueData = {
         ...newIssue,
-        timestamp: Timestamp.fromDate(new Date()), // Store current date as Firestore Timestamp
-        imageUrl, // Include the uploaded image URL
+        timestamp: Timestamp.fromDate(new Date()),
+        imageUrl,
       };
 
-      // Add the new issue to Firestore
       const docRef = await addDoc(collection(db, "issues"), newIssueData);
 
-      // Update the state with the newly added issue
       setIssues((prevIssues) => [
         ...prevIssues,
         {
           ...newIssueData,
-          id: docRef.id,
-          timestamp: new Date(), // Set timestamp as Date object
+          key: docRef.id,
+          timestamp: new Date(),
         },
       ]);
 
-      // Clear the form after submission
       setNewIssue({ description: "", status: "Pending", loggerName: "" });
-      setSelectedImage(null); // Clear the selected image
+      setSelectedImage(null);
+      message.success("Issue added successfully!");
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error adding issue: ", error);
@@ -170,15 +180,56 @@ function DashboardContent({ userRole }: { userRole: string }) {
         }
       }
     } finally {
-      setIsLoading(false); // Stop loading indicator
+      setIsLoading(false);
     }
   };
+
+  /* ===================
+     Define Table Columns
+     =================== */
+  const columns: ColumnsType<Issue> = [
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      filters: [
+        { text: "Pending", value: "Pending" },
+        { text: "In Progress", value: "In Progress" },
+        { text: "Resolved", value: "Resolved" },
+      ],
+      onFilter: (value, record) => record.status === value,
+    },
+    {
+      title: "Timestamp",
+      dataIndex: "timestamp",
+      key: "timestamp",
+      render: (timestamp: Date) => timestamp.toLocaleString(),
+      sorter: (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+    },
+    {
+      title: "Logger Name",
+      dataIndex: "loggerName",
+      key: "loggerName",
+    },
+    {
+      title: "Image",
+      dataIndex: "imageUrl",
+      key: "imageUrl",
+      render: (imageUrl: string | undefined) =>
+        imageUrl ? <img src={imageUrl} alt="Issue" style={{ width: 64, height: 64 }} /> : null,
+    },
+  ];
 
   /* ===================
      Component JSX Rendering
      =================== */
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
       <aside className="w-64 bg-blue-800 text-white flex flex-col p-6">
         <h1 className="text-2xl font-bold mb-8">Project Dashboard</h1>
@@ -206,105 +257,75 @@ function DashboardContent({ userRole }: { userRole: string }) {
             </li>
           </ul>
         </nav>
-        <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 p-2 rounded mt-4">
+        <Button danger onClick={handleLogout} className="mt-4">
           Logout
-        </button>
+        </Button>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 p-8">
         <header className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-semibold text-gray-900">Welcome, {userRole}!</h2>
-          <p className="text-gray-800">Today’s Date: {new Date().toLocaleDateString()}</p>
+          <h2 className="text-3xl font-semibold">Welcome, {userRole}!</h2>
+          <p>Today’s Date: {new Date().toLocaleDateString()}</p>
         </header>
 
-        {/* Issues Table with Inline Add Form */}
+        {/* Issues Table with Add Form */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-semibold text-gray-800">Recent Issues</h3>
+            <h3 className="text-2xl font-semibold">Recent Issues</h3>
           </div>
 
-          {/* Issues List with Inline Add Form */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow rounded">
-              <thead>
-                <tr>
-                  {/* Removed the ID column header */}
-                  <th className="text-gray-900">Description</th>
-                  <th className="text-gray-900">Status</th>
-                  <th className="text-gray-900">Timestamp</th>
-                  <th className="text-gray-900">Logger Name</th>
-                  <th className="text-gray-900">Image</th>
-                </tr>
-              </thead>
-              <tbody>
-                {issues.map((issue) => (
-                  <tr key={issue.id} className="text-gray-900">
-                    {/* Removed the ID column data */}
-                    <td className="text-gray-900">{issue.description}</td>
-                    <td className="text-gray-900">{issue.status}</td>
-                    <td className="text-gray-900">{issue.timestamp.toLocaleString()}</td>
-                    <td className="text-gray-900">{issue.loggerName}</td>
-                    <td>
-                      {issue.imageUrl && issue.imageUrl !== "" && (
-                        <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />
-                      )}
-                    </td>
-                  </tr>
-                ))}
-
-                {/* Inline Add New Issue Form */}
-                <tr>
-                  {/* Adjusted colspan to match the new number of columns */}
-                  <td colSpan={5}>
-                    <form onSubmit={addIssue} className="flex items-center space-x-4 mt-4">
-                      <input
-                        type="text"
-                        name="description"
-                        value={newIssue.description}
-                        onChange={handleInputChange}
-                        placeholder="Issue Description"
-                        className="flex-1 p-2 border rounded"
-                        required
-                      />
-                      <select
-                        name="loggerName"
-                        value={newIssue.loggerName}
-                        onChange={handleInputChange}
-                        className="flex-1 p-2 border rounded"
-                        required
-                      >
-                        <option value="" disabled>
-                          Select Logger
-                        </option>
-                        <option value="Shaheer Syed">Shaheer Syed</option>
-                        <option value="Yahhya Chatta">Yahhya Chatta</option>
-                        <option value="Ramzan Sajid">Ramzan Sajid</option>
-                      </select>
-                      <select
-                        name="status"
-                        value={newIssue.status}
-                        onChange={handleInputChange}
-                        className="p-2 border rounded"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                      </select>
-                      <input type="file" onChange={handleImageChange} className="p-2 border rounded" />
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="bg-green-600 text-white p-2 rounded hover:bg-green-700"
-                      >
-                        {isLoading ? "Adding..." : "Add Issue"}
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Add New Issue Form */}
+          <div className="mb-6">
+            <Input.TextArea
+              name="description"
+              value={newIssue.description}
+              onChange={handleInputChange}
+              placeholder="Issue Description"
+              rows={2}
+              style={{ marginBottom: 8 }}
+            />
+            <div style={{ display: "flex", gap: "8px", marginBottom: 8 }}>
+              <Select
+                value={newIssue.loggerName}
+                onChange={handleSelectChange("loggerName")}
+                placeholder="Select Logger"
+                style={{ flex: 1 }}
+              >
+                <Select.Option value="Shaheer Syed">Shaheer Syed</Select.Option>
+                <Select.Option value="Yahhya Chatta">Yahhya Chatta</Select.Option>
+                <Select.Option value="Ramzan Sajid">Ramzan Sajid</Select.Option>
+              </Select>
+              <Select
+                value={newIssue.status}
+                onChange={handleSelectChange("status")}
+                style={{ width: 150 }}
+              >
+                <Select.Option value="Pending">Pending</Select.Option>
+                <Select.Option value="In Progress">In Progress</Select.Option>
+                <Select.Option value="Resolved">Resolved</Select.Option>
+              </Select>
+            </div>
+            <Upload
+              beforeUpload={() => false} // Prevent automatic upload
+              onChange={handleImageChange}
+              maxCount={1}
+            >
+              <Button icon={<UploadOutlined />}>Select Image</Button>
+            </Upload>
+            <Button
+              type="primary"
+              onClick={addIssue}
+              loading={isLoading}
+              style={{ marginTop: 8 }}
+              disabled={!newIssue.description || !newIssue.loggerName}
+            >
+              Add Issue
+            </Button>
           </div>
+
+          {/* Issues Table */}
+          <Table columns={columns} dataSource={issues} />
         </section>
       </main>
     </div>
@@ -319,7 +340,7 @@ function DashboardLoader() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = searchParams?.get("role") || "user"; // Default to "user"
+    const role = searchParams?.get("role") || "user";
     setUserRole(role);
   }, [searchParams]);
 
