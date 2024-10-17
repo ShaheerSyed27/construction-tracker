@@ -314,6 +314,30 @@ export default function DashboardPage() {
   );
 }
 
+import { Form, Input, Button } from 'antd';
+
+function ContactForm() {
+  return (
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <div className="bg-white p-6 rounded shadow-md">
+        <Form layout="vertical" style={{ width: '300px' }}>
+          <Form.Item label="Name" name="name">
+            <Input />
+          </Form.Item>
+          <Form.Item label="Email" name="email">
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" className="w-full">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+    </div>
+  );
+}
+
 /* ===================
    Firebase Storage Rules (updated)
    =================== */
