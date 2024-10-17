@@ -183,14 +183,14 @@ function DashboardContent({ userRole }: { userRole: string }) {
       {/* Main Content */}
       <main className="flex-1 p-8">
         <header className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-semibold">Welcome, {userRole}!</h2>
-          <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
+          <h2 className="text-3xl font-semibold text-gray-900">Welcome, {userRole}!</h2>
+          <p className="text-gray-800">Today’s Date: {new Date().toLocaleDateString()}</p>
         </header>
 
         {/* Issues Table with Inline Add Form */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-semibold">Recent Issues</h3>
+            <h3 className="text-2xl font-semibold text-gray-800">Recent Issues</h3>
           </div>
 
           {/* Issues List with Inline Add Form */}
