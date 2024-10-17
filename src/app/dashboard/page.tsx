@@ -27,7 +27,6 @@ export const dynamic = "force-dynamic";
 function DashboardContent({ userRole }: { userRole: string }) {
   const router = useRouter(); // Initialize router for navigation
   const [issues, setIssues] = useState<Issue[]>([]); // State for storing issues from Firestore
-  const [showForm, setShowForm] = useState(false); // State to control visibility of issue input form
   const [newIssue, setNewIssue] = useState<Issue>({
     id: "",
     description: "",
@@ -132,7 +131,6 @@ function DashboardContent({ userRole }: { userRole: string }) {
     // Clear the form after submission
     setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
     setSelectedImage(null); // Clear the selected image
-    setShowForm(false); // Hide the form after submission
   };
 
   /* ===================
@@ -166,48 +164,13 @@ function DashboardContent({ userRole }: { userRole: string }) {
           <p className="text-gray-600">Today’s Date: {new Date().toLocaleDateString()}</p>
         </header>
 
-        {/* Issues Table with Add Button */}
+        {/* Issues Table with Inline Add Form */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-2xl font-semibold">Recent Issues</h3>
-            <button
-              className="text-2xl bg-green-600 text-white p-2 rounded-full hover:bg-green-700"
-              onClick={() => setShowForm(!showForm)}
-            >
-              +
-            </button>
           </div>
 
-          {/* Form to Add New Issue */}
-          {showForm && (
-            <form onSubmit={addIssue} className="space-y-4 mb-8">
-              <input
-                type="text"
-                name="description"
-                value={newIssue.description}
-                onChange={handleInputChange}
-                placeholder="Issue Description"
-                className="w-full p-2 border rounded"
-                required
-              />
-              <select
-                name="status"
-                value={newIssue.status}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              >
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
-              </select>
-              <input type="file" onChange={handleImageChange} className="w-full p-2 border rounded" />
-              <button type="submit" className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">
-                Add Issue
-              </button>
-            </form>
-          )}
-
-          {/* Issues List */}
+          {/* Issues List with Inline Add Form */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded">
               <thead>
@@ -231,6 +194,37 @@ function DashboardContent({ userRole }: { userRole: string }) {
                     </td>
                   </tr>
                 ))}
+
+                {/* Inline Add New Issue Form */}
+                <tr>
+                  <td colSpan={5}>
+                    <form onSubmit={addIssue} className="flex items-center space-x-4 mt-4">
+                      <input
+                        type="text"
+                        name="description"
+                        value={newIssue.description}
+                        onChange={handleInputChange}
+                        placeholder="Issue Description"
+                        className="flex-1 p-2 border rounded"
+                        required
+                      />
+                      <select
+                        name="status"
+                        value={newIssue.status}
+                        onChange={handleInputChange}
+                        className="p-2 border rounded"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                      </select>
+                      <input type="file" onChange={handleImageChange} className="p-2 border rounded" />
+                      <button type="submit" className="bg-green-600 text-white p-2 rounded hover:bg-green-700">
+                        Add Issue
+                      </button>
+                    </form>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
