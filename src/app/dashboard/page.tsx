@@ -41,6 +41,9 @@ function DashboardContent({ userRole }: { userRole: string }) {
   useEffect(() => {
     const fetchIssues = async () => {
       try {
+        if (!auth.currentUser) {
+          throw new Error("User is not authenticated");
+        }
         const querySnapshot = await getDocs(collection(db, "issues")); // Fetch issues from Firestore
         const issuesData: Issue[] = querySnapshot.docs.map((doc) => {
           const data = doc.data(); // Get the document data
@@ -57,7 +60,13 @@ function DashboardContent({ userRole }: { userRole: string }) {
 
         setIssues(issuesData); // Update state with fetched issues
       } catch (error) {
-        console.error("Error fetching issues: ", error); // Error handling
+        if (error instanceof Error) {
+          console.error("Error fetching issues: ", error); // Error handling
+          if (error.message === "User is not authenticated") {
+            alert("You need to be logged in to view issues.");
+            router.push("/login");
+          }
+        }
       }
     };
 
@@ -99,38 +108,52 @@ function DashboardContent({ userRole }: { userRole: string }) {
   const addIssue = async (e: FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
 
-    let imageUrl = ""; // Initialize image URL variable
+    try {
+      if (!auth.currentUser) {
+        throw new Error("User is not authenticated");
+      }
 
-    // Upload image to Firebase Storage if one is selected
-    if (selectedImage) {
-      const imageRef = ref(storage, `issues/${selectedImage.name}`); // Create storage reference
-      await uploadBytes(imageRef, selectedImage); // Upload the image
-      imageUrl = await getDownloadURL(imageRef); // Retrieve the image URL
+      let imageUrl = ""; // Initialize image URL variable
+
+      // Upload image to Firebase Storage if one is selected
+      if (selectedImage) {
+        const imageRef = ref(storage, `issues/${selectedImage.name}`); // Create storage reference
+        await uploadBytes(imageRef, selectedImage); // Upload the image
+        imageUrl = await getDownloadURL(imageRef); // Retrieve the image URL
+      }
+
+      // Prepare new issue data with timestamp as Firestore Timestamp
+      const newIssueData = {
+        ...newIssue,
+        timestamp: Timestamp.fromDate(new Date()), // Store timestamp in Firestore format
+        imageUrl, // Include the uploaded image URL
+      };
+
+      // Add the new issue to Firestore
+      const docRef = await addDoc(collection(db, "issues"), newIssueData);
+
+      // Update the state with the newly added issue (convert timestamp to string)
+      setIssues((prevIssues) => [
+        ...prevIssues,
+        {
+          ...newIssueData,
+          id: docRef.id,
+          timestamp: new Date().toLocaleString(), // Ensure timestamp is a string
+        },
+      ]);
+
+      // Clear the form after submission
+      setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
+      setSelectedImage(null); // Clear the selected image
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error("Error adding issue: ", error);
+        if (error.message === "User is not authenticated") {
+          alert("You need to be logged in to add an issue.");
+          router.push("/login");
+        }
+      }
     }
-
-    // Prepare new issue data with timestamp as Firestore Timestamp
-    const newIssueData = {
-      ...newIssue,
-      timestamp: Timestamp.fromDate(new Date()), // Store timestamp in Firestore format
-      imageUrl, // Include the uploaded image URL
-    };
-
-    // Add the new issue to Firestore
-    const docRef = await addDoc(collection(db, "issues"), newIssueData);
-
-    // Update the state with the newly added issue (convert timestamp to string)
-    setIssues((prevIssues) => [
-      ...prevIssues,
-      {
-        ...newIssueData,
-        id: docRef.id,
-        timestamp: new Date().toLocaleString(), // Ensure timestamp is a string
-      },
-    ]);
-
-    // Clear the form after submission
-    setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
-    setSelectedImage(null); // Clear the selected image
   };
 
   /* ===================
