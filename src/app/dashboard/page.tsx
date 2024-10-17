@@ -152,7 +152,9 @@ function DashboardContent({ userRole }: { userRole: string }) {
      Handle Image Upload (Ant Design Upload)
      =================== */
   const handleImageChange = (info: any) => {
-    if (info.file.status === "done") {
+    if (info.file.status === "removed") {
+      setSelectedImage(null);
+    } else if (info.file.status === "done") {
       setSelectedImage(info.file.originFileObj);
     }
   };
@@ -302,18 +304,10 @@ function DashboardContent({ userRole }: { userRole: string }) {
           mode="inline"
           style={{ border: "none" }}
         >
-          <Menu.Item key="1" icon={<UserOutlined />}>
-            Overview
-          </Menu.Item>
-          <Menu.Item key="2" icon={<UserOutlined />}>
-            Reports
-          </Menu.Item>
-          <Menu.Item key="3" icon={<UserOutlined />}>
-            Issues
-          </Menu.Item>
-          <Menu.Item key="4" icon={<UserOutlined />}>
-            Settings
-          </Menu.Item>
+          <Menu.Item key="1" icon={<UserOutlined />}>Overview</Menu.Item>
+          <Menu.Item key="2" icon={<UserOutlined />}>Reports</Menu.Item>
+          <Menu.Item key="3" icon={<UserOutlined />}>Issues</Menu.Item>
+          <Menu.Item key="4" icon={<UserOutlined />}>Settings</Menu.Item>
         </Menu>
       </Sider>
 
@@ -439,6 +433,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
                   </Select>
                 </div>
                 <Upload
+                  listType="picture"
                   beforeUpload={() => false} // Prevent automatic upload
                   onChange={handleImageChange}
                   maxCount={1}
@@ -469,7 +464,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
           </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>
-          © {new Date().getFullYear()} Your Company Name
+          © {new Date().getFullYear()} Shaheer and Yahhya
         </Footer>
       </Layout>
     </Layout>
