@@ -4,7 +4,7 @@
 // Import necessary React hooks and Firebase modules
 import { useState, useEffect, Suspense, ChangeEvent, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation"; // Next.js router hooks for navigation
-import { signOut } from "firebase/auth"; // Firebase authentication module
+import { signOut, onAuthStateChanged } from "firebase/auth"; // Firebase authentication module
 import { auth, db, storage } from "../firebase"; // Firebase configuration (Firestore and Storage)
 import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore"; // Firestore methods
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage methods
@@ -16,6 +16,7 @@ interface Issue {
   status: string;
   timestamp: string; // Ensures timestamp is stored as string in state
   imageUrl?: string; // Optional image URL field
+  loggerName: string; //Logger name entry
 }
 
 // Force dynamic rendering (prevents static page generation in Next.js)
@@ -32,8 +33,10 @@ function DashboardContent({ userRole }: { userRole: string }) {
     description: "",
     status: "Pending", // Default status of a new issue
     timestamp: new Date().toLocaleString(), // Default timestamp as string
+    loggerName: "", // Default as an empty string
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store the selected image file
+  const [isLoading, setIsLoading] = useState(false); // Loading state for adding issue
 
   /* ===================
      Fetch Issues from Firestore (useEffect)
@@ -55,6 +58,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
             status: data.status,
             imageUrl: data.imageUrl || "", // Optional image URL
             timestamp: (data.timestamp as Timestamp).toDate().toLocaleString(), // Convert Timestamp to string
+            loggerName: data.loggerName, // Include logger name
           };
         });
 
@@ -70,8 +74,16 @@ function DashboardContent({ userRole }: { userRole: string }) {
       }
     };
 
-    fetchIssues(); // Call fetch function on component mount
-  }, []); // Run once when component mounts
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchIssues(); // Call fetch function if user is authenticated
+      } else {
+        router.push("/login"); // Redirect if user is not authenticated
+      }
+    });
+
+    return () => unsubscribe(); // Clean up on unmount
+  }, [router]); // Run once when component mounts
 
   /* ===================
      Handle Logout Function
@@ -107,6 +119,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
      =================== */
   const addIssue = async (e: FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
+    setIsLoading(true); // Start loading indicator
 
     try {
       if (!auth.currentUser) {
@@ -143,7 +156,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
       ]);
 
       // Clear the form after submission
-      setNewIssue({ id: "", description: "", status: "Pending", timestamp: "" });
+      setNewIssue({ id: "", description: "", status: "Pending", timestamp: new Date().toLocaleString(), loggerName: "" });
       setSelectedImage(null); // Clear the selected image
     } catch (error) {
       if (error instanceof Error) {
@@ -153,6 +166,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
           router.push("/login");
         }
       }
+    } finally {
+      setIsLoading(false); // Stop loading indicator
     }
   };
 
@@ -197,23 +212,25 @@ function DashboardContent({ userRole }: { userRole: string }) {
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded">
               <thead>
-  <tr>
-    <th className="text-gray-900">ID</th>
-    <th className="text-gray-900">Description</th>
-    <th className="text-gray-900">Status</th>
-    <th className="text-gray-900">Timestamp</th>
-    <th className="text-gray-900">Image</th>
-  </tr>
-</thead>
+                <tr>
+                  <th className="text-gray-900">ID</th>
+                  <th className="text-gray-900">Description</th>
+                  <th className="text-gray-900">Status</th>
+                  <th className="text-gray-900">Timestamp</th>
+                  <th className="text-gray-900">Image</th>
+                </tr>
+              </thead>
               <tbody>
-  {issues.map((issue) => (
-    <tr key={issue.id} className="text-gray-900">
+                {issues.map((issue) => (
+                  <tr key={issue.id} className="text-gray-900">
                     <td>{issue.id}</td>
-                    <td className="text-gray-900">$1</td>
-                    <td className="text-gray-900">$1</td>
-                    <td className="text-gray-900">$1</td>
+                    <td className="text-gray-900">{issue.description}</td>
+                    <td className="text-gray-900">{issue.status}</td>
+                    <td className="text-gray-900">{issue.timestamp}</td>
                     <td>
-                      {issue.imageUrl && <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />}
+                      {issue.imageUrl && issue.imageUrl !== "" && (
+                        <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -232,6 +249,18 @@ function DashboardContent({ userRole }: { userRole: string }) {
                         required
                       />
                       <select
+                        name="loggerName"
+                        value={newIssue.loggerName}
+                        onChange={handleInputChange}
+                        className="flex-1 p-2 border rounded"
+                        required
+                      >
+                        <option value="" disabled>Select Logger</option>
+                        <option value="Shaheer Syed">Shaheer Syed</option>
+                        <option value="Yahhya Chatta">Yahhya Chatta</option>
+                        <option value="Ramzan Sajid">Ramzan Sajid</option>
+                      </select>
+                      <select
                         name="status"
                         value={newIssue.status}
                         onChange={handleInputChange}
@@ -242,8 +271,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
                         <option value="Resolved">Resolved</option>
                       </select>
                       <input type="file" onChange={handleImageChange} className="p-2 border rounded" />
-                      <button type="submit" className="bg-green-600 text-white p-2 rounded hover:bg-green-700">
-                        Add Issue
+                      <button type="submit" disabled={isLoading} className="bg-green-600 text-white p-2 rounded hover:bg-green-700">
+                        {isLoading ? "Adding..." : "Add Issue"}
                       </button>
                     </form>
                   </td>
