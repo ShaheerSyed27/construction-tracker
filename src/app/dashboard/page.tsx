@@ -229,7 +229,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
             <table className="min-w-full bg-white shadow rounded">
               <thead>
                 <tr>
-                  <th className="text-gray-900">ID</th>
+                  {/* Removed the ID column header */}
                   <th className="text-gray-900">Description</th>
                   <th className="text-gray-900">Status</th>
                   <th className="text-gray-900">Timestamp</th>
@@ -240,7 +240,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
               <tbody>
                 {issues.map((issue) => (
                   <tr key={issue.id} className="text-gray-900">
-                    <td>{issue.id}</td>
+                    {/* Removed the ID column data */}
                     <td className="text-gray-900">{issue.description}</td>
                     <td className="text-gray-900">{issue.status}</td>
                     <td className="text-gray-900">{issue.timestamp.toLocaleString()}</td>
@@ -255,7 +255,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
 
                 {/* Inline Add New Issue Form */}
                 <tr>
-                  <td colSpan={6}>
+                  {/* Adjusted colspan to match the new number of columns */}
+                  <td colSpan={5}>
                     <form onSubmit={addIssue} className="flex items-center space-x-4 mt-4">
                       <input
                         type="text"
