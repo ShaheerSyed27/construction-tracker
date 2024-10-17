@@ -1,5 +1,6 @@
 // Install Ant Design if you haven't already:
 // npm install antd
+/* eslint-disable */
 "use client"; // Ensures this component is client-side rendered in Next.js
 
 import { useState, useEffect, Suspense, ChangeEvent } from "react";
@@ -19,6 +20,7 @@ import {
   Table,
   Avatar,
   Typography,
+  Tag,
   Dropdown,
 } from "antd";
 import {
