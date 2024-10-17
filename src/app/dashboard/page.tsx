@@ -480,7 +480,7 @@ function DashboardLoader() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const role = searchParams?.get("role") || "User";
+    const role = searchParams?.get("user") || "User";
     setUserRole(role);
   }, [searchParams]);
 
