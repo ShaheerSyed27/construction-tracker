@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client"; // Ensures this component is client-side rendered in Next.js
 
 // Import necessary React hooks and Firebase modules
@@ -14,9 +13,16 @@ interface Issue {
   id: string;
   description: string;
   status: string;
-  timestamp: string; // Ensures timestamp is stored as string in state
+  timestamp: Date; // Use Date object for timestamps
   imageUrl?: string; // Optional image URL field
-  loggerName: string; //Logger name entry
+  loggerName: string; // Logger name entry
+}
+
+// Define the structure of the new issue (without id and timestamp)
+interface NewIssue {
+  description: string;
+  status: string;
+  loggerName: string;
 }
 
 // Force dynamic rendering (prevents static page generation in Next.js)
@@ -28,11 +34,9 @@ export const dynamic = "force-dynamic";
 function DashboardContent({ userRole }: { userRole: string }) {
   const router = useRouter(); // Initialize router for navigation
   const [issues, setIssues] = useState<Issue[]>([]); // State for storing issues from Firestore
-  const [newIssue, setNewIssue] = useState<Issue>({
-    id: "",
+  const [newIssue, setNewIssue] = useState<NewIssue>({
     description: "",
     status: "Pending", // Default status of a new issue
-    timestamp: new Date().toLocaleString(), // Default timestamp as string
     loggerName: "", // Default as an empty string
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store the selected image file
@@ -49,20 +53,19 @@ function DashboardContent({ userRole }: { userRole: string }) {
         }
         const querySnapshot = await getDocs(collection(db, "issues")); // Fetch issues from Firestore
         const issuesData: Issue[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data(); // Get the document data
+          const data = doc.data();
 
-          // Return the issue object with timestamp converted to a string
           return {
-            id: doc.id, // Document ID
+            id: doc.id,
             description: data.description,
             status: data.status,
-            imageUrl: data.imageUrl || "", // Optional image URL
-            timestamp: (data.timestamp as Timestamp).toDate().toLocaleString(), // Convert Timestamp to string
-            loggerName: data.loggerName, // Include logger name
+            imageUrl: data.imageUrl || "",
+            timestamp: (data.timestamp as Timestamp).toDate(), // Convert Timestamp to Date
+            loggerName: data.loggerName,
           };
         });
 
-        setIssues(issuesData); // Update state with fetched issues
+        setIssues(issuesData);
       } catch (error) {
         if (error instanceof Error) {
           console.error("Error fetching issues: ", error); // Error handling
@@ -101,7 +104,6 @@ function DashboardContent({ userRole }: { userRole: string }) {
     setNewIssue((prevIssue) => ({
       ...prevIssue, // Preserve existing issue data
       [name]: value, // Update the changed field
-      timestamp: new Date().toLocaleString(), // Automatically update timestamp as string
     }));
   };
 
@@ -130,7 +132,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
 
       // Upload image to Firebase Storage if one is selected
       if (selectedImage) {
-        const imageRef = ref(storage, `issues/${selectedImage.name}`); // Create storage reference
+        const uniqueImageName = `${Date.now()}_${selectedImage.name}`; // Ensure unique image name
+        const imageRef = ref(storage, `issues/${uniqueImageName}`); // Create storage reference
         await uploadBytes(imageRef, selectedImage); // Upload the image
         imageUrl = await getDownloadURL(imageRef); // Retrieve the image URL
       }
@@ -138,25 +141,25 @@ function DashboardContent({ userRole }: { userRole: string }) {
       // Prepare new issue data with timestamp as Firestore Timestamp
       const newIssueData = {
         ...newIssue,
-        timestamp: Timestamp.fromDate(new Date()), // Store timestamp in Firestore format
+        timestamp: Timestamp.fromDate(new Date()), // Store current date as Firestore Timestamp
         imageUrl, // Include the uploaded image URL
       };
 
       // Add the new issue to Firestore
       const docRef = await addDoc(collection(db, "issues"), newIssueData);
 
-      // Update the state with the newly added issue (convert timestamp to string)
+      // Update the state with the newly added issue
       setIssues((prevIssues) => [
         ...prevIssues,
         {
           ...newIssueData,
           id: docRef.id,
-          timestamp: new Date().toLocaleString(), // Ensure timestamp is a string
+          timestamp: new Date(), // Set timestamp as Date object
         },
       ]);
 
       // Clear the form after submission
-      setNewIssue({ id: "", description: "", status: "Pending", timestamp: new Date().toLocaleString(), loggerName: "" });
+      setNewIssue({ description: "", status: "Pending", loggerName: "" });
       setSelectedImage(null); // Clear the selected image
     } catch (error) {
       if (error instanceof Error) {
@@ -181,16 +184,29 @@ function DashboardContent({ userRole }: { userRole: string }) {
         <h1 className="text-2xl font-bold mb-8">Project Dashboard</h1>
         <nav className="flex-1">
           <ul className="space-y-4">
-            <li><a href="#" className="hover:bg-blue-700 p-2 rounded block">Overview</a></li>
-            <li><a href="#" className="hover:bg-blue-700 p-2 rounded block">Reports</a></li>
-            <li><a href="#" className="hover:bg-blue-700 p-2 rounded block">Issues</a></li>
-            <li><a href="#" className="hover:bg-blue-700 p-2 rounded block">Settings</a></li>
+            <li>
+              <a href="#" className="hover:bg-blue-700 p-2 rounded block">
+                Overview
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:bg-blue-700 p-2 rounded block">
+                Reports
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:bg-blue-700 p-2 rounded block">
+                Issues
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:bg-blue-700 p-2 rounded block">
+                Settings
+              </a>
+            </li>
           </ul>
         </nav>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 p-2 rounded mt-4"
-        >
+        <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 p-2 rounded mt-4">
           Logout
         </button>
       </aside>
@@ -217,6 +233,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
                   <th className="text-gray-900">Description</th>
                   <th className="text-gray-900">Status</th>
                   <th className="text-gray-900">Timestamp</th>
+                  <th className="text-gray-900">Logger Name</th>
                   <th className="text-gray-900">Image</th>
                 </tr>
               </thead>
@@ -226,7 +243,8 @@ function DashboardContent({ userRole }: { userRole: string }) {
                     <td>{issue.id}</td>
                     <td className="text-gray-900">{issue.description}</td>
                     <td className="text-gray-900">{issue.status}</td>
-                    <td className="text-gray-900">{issue.timestamp}</td>
+                    <td className="text-gray-900">{issue.timestamp.toLocaleString()}</td>
+                    <td className="text-gray-900">{issue.loggerName}</td>
                     <td>
                       {issue.imageUrl && issue.imageUrl !== "" && (
                         <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />
@@ -237,7 +255,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
 
                 {/* Inline Add New Issue Form */}
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <form onSubmit={addIssue} className="flex items-center space-x-4 mt-4">
                       <input
                         type="text"
@@ -255,7 +273,9 @@ function DashboardContent({ userRole }: { userRole: string }) {
                         className="flex-1 p-2 border rounded"
                         required
                       >
-                        <option value="" disabled>Select Logger</option>
+                        <option value="" disabled>
+                          Select Logger
+                        </option>
                         <option value="Shaheer Syed">Shaheer Syed</option>
                         <option value="Yahhya Chatta">Yahhya Chatta</option>
                         <option value="Ramzan Sajid">Ramzan Sajid</option>
@@ -271,7 +291,11 @@ function DashboardContent({ userRole }: { userRole: string }) {
                         <option value="Resolved">Resolved</option>
                       </select>
                       <input type="file" onChange={handleImageChange} className="p-2 border rounded" />
-                      <button type="submit" disabled={isLoading} className="bg-green-600 text-white p-2 rounded hover:bg-green-700">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="bg-green-600 text-white p-2 rounded hover:bg-green-700"
+                      >
                         {isLoading ? "Adding..." : "Add Issue"}
                       </button>
                     </form>
@@ -313,41 +337,3 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
-
-import { Form, Input, Button } from 'antd';
-
-export function ContactForm() {
-  return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md">
-        <Form layout="vertical" style={{ width: '300px' }}>
-          <Form.Item label="Name" name="name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Email" name="email">
-            <Input />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full">
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
-    </div>
-  );
-}
-
-/* ===================
-   Firebase Storage Rules (updated)
-   =================== */
-/*
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /issues/{fileName} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-*/
-//adding comments for redeployment
