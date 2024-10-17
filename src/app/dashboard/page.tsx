@@ -154,7 +154,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
   const handleImageChange = (info: any) => {
     if (info.file.status === "removed") {
       setSelectedImage(null);
-    } else if (info.file.status === "done") {
+    } else if (info.file.status === "uploading") {
       setSelectedImage(info.file.originFileObj);
     }
   };
@@ -434,9 +434,10 @@ function DashboardContent({ userRole }: { userRole: string }) {
                 </div>
                 <Upload
                   listType="picture"
-                  beforeUpload={() => false} // Prevent automatic upload
+                  beforeUpload={() => true} // Allow the image to be uploaded manually later
                   onChange={handleImageChange}
                   maxCount={1}
+                  onRemove={() => setSelectedImage(null)}
                   style={{ marginBottom: 16 }}
                 >
                   <Button icon={<UploadOutlined />}>Select Image</Button>
