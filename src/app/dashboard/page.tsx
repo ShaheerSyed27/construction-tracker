@@ -197,21 +197,21 @@ function DashboardContent({ userRole }: { userRole: string }) {
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded">
               <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Description</th>
-                  <th>Status</th>
-                  <th>Timestamp</th>
-                  <th>Image</th>
-                </tr>
-              </thead>
+  <tr>
+    <th className="text-gray-900">ID</th>
+    <th className="text-gray-900">Description</th>
+    <th className="text-gray-900">Status</th>
+    <th className="text-gray-900">Timestamp</th>
+    <th className="text-gray-900">Image</th>
+  </tr>
+</thead>
               <tbody>
-                {issues.map((issue) => (
-                  <tr key={issue.id}>
+  {issues.map((issue) => (
+    <tr key={issue.id} className="text-gray-900">
                     <td>{issue.id}</td>
-                    <td>{issue.description}</td>
-                    <td>{issue.status}</td>
-                    <td>{issue.timestamp}</td>
+                    <td className="text-gray-900">$1</td>
+                    <td className="text-gray-900">$1</td>
+                    <td className="text-gray-900">$1</td>
                     <td>
                       {issue.imageUrl && <img src={issue.imageUrl} alt="Issue" className="w-16 h-16" />}
                     </td>
