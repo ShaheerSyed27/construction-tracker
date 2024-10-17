@@ -316,7 +316,7 @@ export default function DashboardPage() {
 
 import { Form, Input, Button } from 'antd';
 
-function ContactForm() {
+export function ContactForm() {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-6 rounded shadow-md">
