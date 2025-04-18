@@ -1,4 +1,8 @@
 {
-    "css.customData": [".vscode/css_custom_data.json"]
+    "css.customData": [
+      ".vscode/css_custom_data.json"
+    ],
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true
   }
   

@@ -3,40 +3,39 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white text-gray-800">
       {/* Navigation Bar */}
-      <nav className="flex justify-between items-center px-6 py-4">
-        <div className="text-2xl font-semibold tracking-wide">Duplex Brothers v2.4</div>
-        <div className="flex gap-6">
-          <Link href="/login" className="hover:underline">
-            Login
-          </Link>
-          <Link href="/dashboard" className="hover:underline">
-            Dashboard
-          </Link>
+      <nav className="bg-white py-6">
+        <div className="container mx-auto flex justify-center items-center">
+          <div className="flex space-x-8">
+            <Link href="/login" className="hover:text-blue-500 text-gray-600 transition-colors">
+              Login
+            </Link>
+            <Link href="/dashboard" className="hover:text-blue-500 text-gray-600 transition-colors">
+              Dashboard
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <header className="relative flex items-center justify-center h-[80vh] bg-cover bg-center" 
-              style={{ backgroundImage: `url('/construction-bg.jpg')` }}>
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="text-center z-10">
-          <h1 className="text-5xl font-extrabold text-white tracking-wider mb-4">
-            Building Our First Project
+      <header className="bg-gray-50 py-24">
+        <div className="container mx-auto text-center">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Building Amazing Projects
           </h1>
-          <p className="text-lg text-gray-200 max-w-md mx-auto mb-6">
-            Track every phase of our construction journey here with precision and style.
+          <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+            Track every phase of your construction journey with precision and style.
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/login">
-              <button className="bg-white text-black px-6 py-2 rounded-full text-lg hover:bg-gray-100">
-                Get Started
+          <div className="flex justify-center space-x-6">
+            <Link href="/login" className="inline-block">
+              <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                Learn More
               </button>
             </Link>
-            <Link href="/dashboard">
-              <button className="bg-gray-900 text-white px-6 py-2 rounded-full text-lg hover:bg-gray-800">
-                View Dashboard
+            <Link href="/dashboard" className="inline-block">
+              <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-lg transition-colors">
+                View Projects
               </button>
             </Link>
           </div>
@@ -44,44 +43,29 @@ export default function HomePage() {
       </header>
 
       {/* Features Section */}
-      <section className="py-16 px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-semibold">Why Built Duplex Brothers Website?</h2>
-          <p className="text-lg text-gray-600 mt-2">
-            Because I hate myself and didn&apos;t want to sleep.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
-            <h3 className="text-2xl font-semibold mb-4 text-red-800">Real-Time Tracking</h3>
-            <p className="text-gray-700">
-              Monitor every phase of our project, from foundation to completion.
-            </p>
+      <section className="py-20">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-semibold text-gray-900 text-center mb-12">Our Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Feature 1 */}
+            <div className="border rounded-lg p-8 hover:shadow-lg transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Real-Time Tracking</h3>
+              <p className="text-gray-600">Monitor every project phase from start to finish with our intuitive tracking system.</p>
+            </div>
+            {/* Feature 2 */}
+            <div className="border rounded-lg p-8 hover:shadow-lg transition-shadow duration-300">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Collaboration Tools</h3>
+              <p className="text-gray-600">Keep everyone aligned with seamless updates, approvals, and communication features.</p>
+            </div>
+            {/* Add more features as needed */}
           </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-800">Collaborative Tools</h3>
-            <p className="text-gray-700">
-              Keep everyone on the same page with seamless updates and endorsements.
-            </p>
-          </div>
-          <div className="p-6 border rounded-lg shadow-md hover:shadow-lg bg-silver-20 hover:bg-silver-80 transition duration-300 ease-in-out transform hover:scale-108">
-            <h3 className="text-2xl font-semibold mb-4 text-green-800">Budget Management</h3>
-            <p className="text-gray-700">
-            Log expenses and upload receipts with ease.
-            </p>
-          </div>
-
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
+      <footer className="bg-gray-100 py-12">
         <div className="text-center">
-          <p>&copy; 2024 Duplex Brothers. All rights reserved.</p>
-          <div className="mt-4">
-            <Link href="#" className="hover:underline mx-2">Privacy Policy</Link>
-            <Link href="#" className="hover:underline mx-2">Terms of Service</Link>
-          </div>
+          <p className="text-gray-600">&copy; 2024 Duplex Brothers. All rights reserved.</p>
         </div>
       </footer>
     </div>
