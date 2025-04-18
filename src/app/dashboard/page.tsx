@@ -28,6 +28,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   MenuFoldOutlined,
+  DeleteOutlined,
   MenuUnfoldOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
@@ -35,6 +36,7 @@ import type { ColumnsType } from "antd/lib/table";
 
 const { Header, Sider, Content, Footer } = Layout;
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 // Define the structure of the Issue object
 interface Issue {
@@ -98,7 +100,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
         if (error instanceof Error) {
           console.error("Error fetching issues: ", error);
           if (error.message === "User is not authenticated") {
-            message.error("You need to be logged in to view issues.");
+            message.error("You need to be logged in to view the dashboard.");
             router.push("/login");
           }
         }
@@ -188,7 +190,6 @@ function DashboardContent({ userRole }: { userRole: string }) {
       const docRef = await addDoc(collection(db, "issues"), newIssueData);
 
       setIssues((prevIssues) => [
-        ...prevIssues,
         {
           ...newIssueData,
           key: docRef.id,
@@ -202,7 +203,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error adding issue: ", error);
-        if (error.message === "User is not authenticated") {
+        if (error.message === "You need to be logged in to view the dashboard.") {
           message.error("You need to be logged in to add an issue.");
           router.push("/login");
         }
@@ -210,6 +211,13 @@ function DashboardContent({ userRole }: { userRole: string }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const deleteIssue = (key: string) => {
+    setIssues(issues.filter((issue) => issue.key !== key));
+    message.success("Issue deleted successfully!");
+    // Here you would also make an API call to delete the issue from the database
+    // Example: await deleteDoc(doc(db, "issues", key));
   };
 
   /* ===================
@@ -221,7 +229,7 @@ function DashboardContent({ userRole }: { userRole: string }) {
       dataIndex: "description",
       key: "description",
       render: (text) => <Text>{text}</Text>,
-    },
+    },{
     {
       title: "Status",
       dataIndex: "status",
@@ -273,6 +281,23 @@ function DashboardContent({ userRole }: { userRole: string }) {
           />
         ) : null,
     },
+    {
+      title: "Actions",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <a onClick={() => console.log("View details for:", record.key)}>View Details</a>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => deleteIssue(record.key)}
+          >
+            Delete
+          </Button>
+        </Space>
+      ),
+    },
   ];
 
   /* ===================
@@ -286,13 +311,13 @@ function DashboardContent({ userRole }: { userRole: string }) {
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
         style={{
-          background: "#fff",
+          background: "#f0f2f5",
           boxShadow: "2px 0 6px rgba(0, 21, 41, 0.1)",
         }}
       >
         <div
           style={{
-            height: 64,
+            height: 32,
             margin: 16,
             background: "rgba(0, 0, 0, 0.25)",
             borderRadius: 8,
@@ -304,7 +329,10 @@ function DashboardContent({ userRole }: { userRole: string }) {
           mode="inline"
           style={{ border: "none" }}
         >
-          <Menu.Item key="1" icon={<UserOutlined />}>Overview</Menu.Item>
+          <Menu.Item key="1" icon={<UserOutlined />}>
+            Overview
+          </Menu.Item>
+
           <Menu.Item key="2" icon={<UserOutlined />}>Reports</Menu.Item>
           <Menu.Item key="3" icon={<UserOutlined />}>Issues</Menu.Item>
           <Menu.Item key="4" icon={<UserOutlined />}>Settings</Menu.Item>
@@ -343,130 +371,104 @@ function DashboardContent({ userRole }: { userRole: string }) {
               <a onClick={(e) => e.preventDefault()}>{userRole}</a>
             </Dropdown>
           </div>
+
         </Header>
-        <Content style={{ margin: "24px 16px 0", overflow: "initial" }}>
-          <div
-            style={{
-              padding: 24,
-              background: "#fff",
-              minHeight: "calc(100vh - 158px)",
-              borderRadius: 8,
-            }}
-          >
-            {/* Page Header */}
-            <div style={{ marginBottom: 24 }}>
-              <Title level={2}>Welcome, {userRole}!</Title>
-              <Text type="secondary">
-                Today’s Date: {new Date().toLocaleDateString()}
-              </Text>
+
+          <Content style={{ padding: '0 50px', marginTop: 24 }}>
+            {/* Page Title */}
+            <Title level={2} style={{ color: '#1890ff', marginBottom: 20 }}>
+              House Construction Project
+            </Title>
+
+            {/* Summary Metrics */}
+            <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <Text strong style={{ fontSize: 18 }}>Total Expenses:</Text> <Text style={{ fontSize: 18 }}>$18002.00</Text>
+              </div>
+              <div>
+                <Text strong style={{ fontSize: 18 }}>Last Updated:</Text> <Text style={{ fontSize: 18 }}>Apr 12, 2025</Text>
+              </div>
             </div>
 
-            {/* Issues Section */}
-            <div>
-              {/* Add New Issue */}
-              <div
-                style={{
-                  marginBottom: 24,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Title level={3} style={{ margin: 0 }}>
-                  Recent Issues
-                </Title>
-                <Button
-                  type="primary"
-                  icon={<PlusCircleOutlined />}
-                  onClick={() => {
-                    // Open a modal or drawer to add a new issue
-                  }}
-                >
-                  Add Issue
+            <Layout.Content
+              className="site-layout-background"
+              style={{
+                padding: 24,
+                minHeight: 380,
+                background: '#fff',
+                borderRadius: 8,
+              }}
+            >
+              {/* Expense Overview Section (Placeholder) */}
+              <Title level={4} style={{ marginBottom: 16 }}>
+                Expense Overview
+              </Title>
+              <div style={{ height: 300, background: '#f0f2f5', borderRadius: 8, marginBottom: 20, textAlign: 'center', padding: 50 }}>
+                Chart Placeholder
+              </div>
+
+              {/* Category Breakdown Section (Placeholder) */}
+              <Title level={4} style={{ marginBottom: 16 }}>
+                Category Breakdown
+              </Title>
+              <div style={{ height: 300, background: '#f0f2f5', borderRadius: 8, marginBottom: 20, textAlign: 'center', padding: 50 }}>
+                Pie Chart Placeholder
+              </div>
+
+              {/* Expense Entries Section */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <Title level={4}>Expense Entries</Title>
+                <Button type="primary" icon={<PlusCircleOutlined />} onClick={() => console.log("Add Expense Clicked")}>
+                  Add Expense
                 </Button>
               </div>
 
-              {/* Add New Issue Form */}
-              <div
-                style={{
-                  background: "#fafafa",
-                  padding: 24,
-                  borderRadius: 8,
-                  marginBottom: 24,
-                }}
-              >
-                <Input.TextArea
-                  name="description"
-                  value={newIssue.description}
-                  onChange={handleInputChange}
-                  placeholder="Issue Description"
-                  rows={2}
-                  style={{ marginBottom: 16 }}
-                />
-                <div style={{ display: "flex", gap: "16px", marginBottom: 16 }}>
-                  <Select
-                    value={newIssue.loggerName}
-                    onChange={handleSelectChange("loggerName")}
-                    placeholder="Select Logger"
-                    style={{ flex: 1 }}
-                  >
-                    <Select.Option value="Shaheer Syed">
-                      Shaheer Syed
-                    </Select.Option>
-                    <Select.Option value="Yahhya Chatta">
-                      Yahhya Chatta
-                    </Select.Option>
-                    <Select.Option value="Ramzan Sajid">
-                      Ramzan Sajid
-                    </Select.Option>
-                  </Select>
-                  <Select
-                    value={newIssue.status}
-                    onChange={handleSelectChange("status")}
-                    style={{ width: 200 }}
-                  >
-                    <Select.Option value="Pending">Pending</Select.Option>
-                    <Select.Option value="In Progress">
-                      In Progress
-                    </Select.Option>
-                    <Select.Option value="Resolved">Resolved</Select.Option>
-                  </Select>
-                </div>
-                <Upload
-                  listType="picture"
-                  beforeUpload={() => true} // Allow the image to be uploaded manually later
-                  onChange={handleImageChange}
-                  maxCount={1}
-                  onRemove={() => setSelectedImage(null)}
-                  style={{ marginBottom: 16 }}
-                >
-                  <Button icon={<UploadOutlined />}>Select Image</Button>
-                </Upload>
-                <Button
-                  type="primary"
-                  onClick={addIssue}
-                  loading={isLoading}
-                  disabled={
-                    !newIssue.description || !newIssue.loggerName
-                  }
-                >
-                  Submit Issue
-                </Button>
+              {/* Filters (Placeholder) */}
+              <div style={{ display: 'flex', gap: '16px', marginBottom: 20 }}>
+                <Select defaultValue="All Categories" style={{ width: 150 }} onChange={() => { }}>
+                  <Option value="All Categories">All Categories</Option>
+                  {/* Add more options as needed */}
+                </Select>
+                <Select defaultValue="All Time" style={{ width: 120 }} onChange={() => { }}>
+                  <Option value="All Time">All Time</Option>
+                  {/* Add more options as needed */}
+                </Select>
+                <Input.Search placeholder="Search expenses..." style={{ width: 200 }} />
               </div>
 
               {/* Issues Table */}
-              <Table
-                columns={columns}
-                dataSource={issues}
-                pagination={{ pageSize: 5 }}
-                style={{ background: "#fff", borderRadius: 8 }}
-              />
-            </div>
-          </div>
-        </Content>
+              <div>
+
+                <div style={{marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <Title level={3} style={{ margin: 0}}>
+                    Recent Issues
+                  </Title>
+                  <Button
+                    type="primary"
+                    icon={<PlusCircleOutlined />}
+                    onClick={() => {
+
+                    }}
+                  >
+                    Add Issue
+                  </Button>
+                </div>
+
+                <Table
+                  columns={columns}
+                  dataSource={issues}
+                  pagination={{ pageSize: 5 }}
+                  style={{ background: '#fff', borderRadius: 8 }}
+                  rowClassName={(record, index) => index % 2 === 0 ? 'even-row' : 'odd-row'}
+                />
+              </div>
+            </Layout.Content>
+          </Content>
+
         <Footer style={{ textAlign: "center" }}>
           © {new Date().getFullYear()} Shaheer and Yahhya
         </Footer>
+
       </Layout>
     </Layout>
   );
